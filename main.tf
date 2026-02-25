@@ -26,16 +26,14 @@ resource "digitalocean_droplet" "dovps" {
   ssh_keys = [digitalocean_ssh_key.my_key.fingerprint]
 
   user_data = <<-EOF
-    #!/bin/bash
-    set -euo pipefail
-
-    useradd -m -s /bin/bash do
-    usermod -aG sudo do
-    echo "do ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-    mkdir -p /home/do/.ssh
-    cp /root/.ssh/authorized_keys /home/do/.ssh/
-    chown -R do:do /home/do/.ssh
-    chmod 700 /home/do/.ssh
-    chmod 600 /home/do/.ssh/authorized_keys
-  EOF
+              #!/bin/bash
+              useradd -m -s /bin/bash do
+              usermod -aG sudo do
+              echo "do ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+              mkdir -p /home/do/.ssh
+              cp /root/.ssh/authorized_keys /home/do/.ssh/
+              chown -R do:do /home/do/.ssh
+              chmod 700 /home/do/.ssh
+              chmod 600 /home/do/.ssh/authorized_keys
+              EOF
 }
