@@ -10,49 +10,29 @@ resource "null_resource" "security_hardening" {
     host        = digitalocean_droplet.dovps.ipv4_address
     user        = "do"
     private_key = file(replace(var.ssh_key_path, ".pub", ""))
+    timeout     = "2m"
   }
 
-  # Disable root SSH login
   provisioner "remote-exec" {
     inline = [
-      "sudo sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config",
-      "sudo systemctl restart ssh",
-    ]
-  }
-
-  # Install and configure fail2ban
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update -qq",
-      "sudo apt-get install -y -qq fail2ban > /dev/null",
-      "sudo tee /etc/fail2ban/jail.local > /dev/null <<'CONF'",
-      "[sshd]",
-      "enabled = true",
-      "port = ssh",
-      "filter = sshd",
-      "logpath = /var/log/auth.log",
-      "maxretry = 3",
-      "bantime = 3600",
-      "findtime = 600",
-      "CONF",
-      "sudo systemctl enable fail2ban",
-      "sudo systemctl restart fail2ban",
-    ]
-  }
-
-  # Configure UFW firewall
-  provisioner "remote-exec" {
-    inline = [
+      # UFW first — ensure SSH stays open before enabling
       "sudo ufw allow OpenSSH",
       "sudo ufw allow 80/tcp",
       "sudo ufw allow 443/tcp",
       "sudo ufw --force enable",
-    ]
-  }
 
-  # Update packages
-  provisioner "remote-exec" {
-    inline = [
+      # Disable root SSH login
+      "sudo sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config",
+      "sudo systemctl restart ssh",
+
+      # Install and configure fail2ban
+      "sudo apt-get update -qq",
+      "sudo apt-get install -y -qq fail2ban > /dev/null",
+      "printf '[sshd]\\nenabled = true\\nport = ssh\\nfilter = sshd\\nlogpath = /var/log/auth.log\\nmaxretry = 5\\nbantime = 3600\\nfindtime = 600\\n' | sudo tee /etc/fail2ban/jail.local > /dev/null",
+      "sudo systemctl enable fail2ban",
+      "sudo systemctl restart fail2ban",
+
+      # Update packages
       "sudo apt-get upgrade -y -qq > /dev/null",
     ]
   }
