@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = "~> 1.14.6"
 
   required_providers {
     digitalocean = {
@@ -23,9 +23,10 @@ resource "digitalocean_ssh_key" "my_key" {
 }
 
 resource "digitalocean_droplet" "dovps" {
-  image    = "ubuntu-24-04-x64"
-  name     = "dovps"
-  region   = "fra1"
+  image  = "ubuntu-24-04-x64"
+  name   = "dovps"
+  region = "fra1"
+  #size     = "s-1vcpu-2gb"
   size     = "s-1vcpu-2gb-70gb-intel"
   ssh_keys = [digitalocean_ssh_key.my_key.fingerprint]
 

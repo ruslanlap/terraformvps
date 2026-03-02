@@ -21,8 +21,8 @@ resource "null_resource" "security_hardening" {
       "sudo ufw allow 443/tcp",
       "sudo ufw --force enable",
 
-      # Disable root SSH login
-      "sudo sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config",
+      # Root SSH: key-only (no password)
+      "sudo sed -i 's/^PermitRootLogin yes/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config",
       "sudo systemctl restart ssh",
 
       # Install and configure fail2ban
